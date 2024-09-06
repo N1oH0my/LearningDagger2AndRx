@@ -1,7 +1,6 @@
 package com.surf2024.learningdagger2andrx.app.module
 
 import android.app.Application
-import com.surf2024.learningdagger2andrx.app.MyApp
 import dagger.Module
 import dagger.Provides
 import javax.inject.Singleton
@@ -12,5 +11,4 @@ class AppModule(private val application: Application) {
     @Provides
     @Singleton
     fun provideApplication(): Application = application
-
 }

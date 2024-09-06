@@ -1,7 +1,6 @@
-package com.surf2024.learningdagger2andrx.presenter
+package com.surf2024.learningdagger2andrx.activity.presenter
 
 import android.app.Application
-import com.surf2024.learningdagger2andrx.app.MyApp
 import javax.inject.Inject
 
 class PresenterImpl @Inject constructor(
