@@ -9,7 +9,9 @@ import javax.inject.Singleton
 @Singleton
 @Component(modules = [AppModule::class])
 interface AppComponent {
+
     fun inject(app: MyApp)
 
     fun getActivityComponent(activityModule: ActivityModule): ActivityComponent
+
 }
