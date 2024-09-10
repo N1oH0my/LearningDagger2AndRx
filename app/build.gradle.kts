@@ -43,6 +43,7 @@ dependencies {
     implementation(libs.androidx.activity)
     implementation(libs.androidx.constraintlayout)
     implementation("com.google.dagger:dagger:2.52")
+    implementation(libs.rxjava)
     kapt("com.google.dagger:dagger-compiler:2.52")
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
