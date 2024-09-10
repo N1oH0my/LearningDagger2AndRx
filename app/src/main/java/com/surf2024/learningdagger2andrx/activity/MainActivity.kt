@@ -22,25 +22,48 @@ class MainActivity : AppCompatActivity() {
     @Inject
     lateinit var presenter: PresenterInterface
 
-    private fun fetchCategories(): Observable<List<Category>> {
-        return Observable.just(
-            listOf(
+    private fun fetchCategories(): Observable<Category> {
+        return Observable.create { emitter ->
+            val categories = listOf(
                 Category(1, listOf(Subcategory(101), Subcategory(102))),
                 Category(2, listOf(Subcategory(201), Subcategory(202)))
             )
-        )
+            for (category in categories) {
+                if (!emitter.isDisposed) {
+                    emitter.onNext(category)
+                }
+            }
+            if (!emitter.isDisposed) {
+                emitter.onComplete()
+            }
+            /**
+             * TODO:
+             * fetchCategories вернуть Observable<Category> не как list<list> а через emitter по 1 получать
+             *     аналогично fetchProducts
+             */
+        }
     }
 
-    private fun fetchProducts(): Observable<List<Product>> {
-        return Observable.just(
-            listOf(
-                Product(1, "Товар 1", 101),
-                Product(2, "Товар 2", 102),
-                Product(3, "Товар 3", 201),
-                Product(4, "Товар 4", 202),
-                Product(5, "Товар 5", 103)
+    private fun fetchProducts(): Observable<Product> {
+        return Observable.create { emitter ->
+            val products = listOf(
+                Product(1, "Product 1", 101),
+                Product(2, "Product 2", 102),
+                Product(3, "Product 3", 201),
+                Product(4, "Product 4", 202),
+                Product(5, "Product 5", 103)
             )
-        )
+
+            for (product in products) {
+                if (!emitter.isDisposed) {
+                    emitter.onNext(product)
+                }
+            }
+
+            if (!emitter.isDisposed) {
+                emitter.onComplete()
+            }
+        }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -69,16 +92,14 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun getProductsByCategoryId(categoryId: Int): Observable<List<Product>> {
-        return fetchProducts().flatMap { listOfProducts ->
-            fetchCategories().map { listOfCategories ->
-                listOfProducts.filter { product ->
-                    listOfCategories.filter { it.id == categoryId }
-                        .flatMap { it.subcategories }
-                        .map { it.id }
-                        .contains(product.subcategoryId)
-                }
+        return fetchCategories()
+            .filter { it.id == categoryId }
+            .flatMap { category ->
+                val subcategoryIds = category.subcategories.map { it.id }
+                fetchProducts().filter { product ->
+                    subcategoryIds.contains(product.subcategoryId)
+                }.toList().toObservable()
             }
-        }
     }
 
     private fun initActivityComponent() {
