@@ -55,18 +55,22 @@ class MainActivity : AppCompatActivity() {
 
         initActivityComponent()
 
-        val productsByCategory = getProductsByCategoryId(1)
+        val disposable = getProductsByCategoryId(1)
+            .subscribe(
+                { filteredProducts ->
+                    Log.e("MainActivity", "Fetched products $filteredProducts")
+                },
+                { error ->
+                    Log.e("MainActivity", "Error fetching products", error)
+                }
+            )
 
         presenter.doSmth()
     }
 
-    private fun getProductsByCategoryId(categoryId: Int): List<Product> {
-        return try {
-            // .flatMap для нескольких Observable
-            Observable.zip(
-                fetchProducts(),
-                fetchCategories()
-            ) { listOfProducts, listOfCategories ->
+    private fun getProductsByCategoryId(categoryId: Int): Observable<List<Product>> {
+        return fetchProducts().flatMap { listOfProducts ->
+            fetchCategories().map { listOfCategories ->
                 listOfProducts.filter { product ->
                     listOfCategories.filter { it.id == categoryId }
                         .flatMap { it.subcategories }
@@ -74,10 +78,6 @@ class MainActivity : AppCompatActivity() {
                         .contains(product.subcategoryId)
                 }
             }
-            .blockingFirst(emptyList())
-        } catch (e: Exception) {
-            Log.d("MainActivity", "Error Throwable: ${e.message}")
-            emptyList()
         }
     }
 
