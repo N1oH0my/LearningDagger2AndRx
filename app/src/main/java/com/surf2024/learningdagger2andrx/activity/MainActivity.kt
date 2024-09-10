@@ -14,7 +14,7 @@ import com.surf2024.learningdagger2andrx.activity.presenter.PresenterInterface
 import com.surf2024.learningdagger2andrx.domain.entity.Category
 import com.surf2024.learningdagger2andrx.domain.entity.Product
 import com.surf2024.learningdagger2andrx.domain.entity.Subcategory
-import io.reactivex.rxjava3.core.Single
+import io.reactivex.rxjava3.core.Observable
 import javax.inject.Inject
 
 class MainActivity : AppCompatActivity() {
@@ -22,8 +22,8 @@ class MainActivity : AppCompatActivity() {
     @Inject
     lateinit var presenter: PresenterInterface
 
-    private fun fetchCategories(): Single<List<Category>> {
-        return Single.just(
+    private fun fetchCategories(): Observable<List<Category>> {
+        return Observable.just(
             listOf(
                 Category(1, listOf(Subcategory(101), Subcategory(102))),
                 Category(2, listOf(Subcategory(201), Subcategory(202)))
@@ -31,8 +31,8 @@ class MainActivity : AppCompatActivity() {
         )
     }
 
-    private fun fetchProducts(): Single<List<Product>> {
-        return Single.just(
+    private fun fetchProducts(): Observable<List<Product>> {
+        return Observable.just(
             listOf(
                 Product(1, "Товар 1", 101),
                 Product(2, "Товар 2", 102),
@@ -62,28 +62,22 @@ class MainActivity : AppCompatActivity() {
 
     private fun getProductsByCategoryId(categoryId: Int): List<Product> {
         return try {
-            val resultedListOfProducts: MutableList<Product> = mutableListOf()
-            val disposable = fetchProducts().subscribe({ listOfProducts ->
-                val subDisposable = fetchCategories().subscribe({ listOfCategories ->
-                    val filteredProducts = listOfProducts.filter { product ->
-                        listOfCategories.filter { it.id == categoryId }
-                            .flatMap { it.subcategories }
-                            .map { it.id }
-                            .contains(product.subcategoryId)
-                    }
-                    resultedListOfProducts.addAll(filteredProducts)
-                }, { error ->
-                    Log.d("MainActivity", "Error Throwable: ${error.message}")
-                    emptyList<Product>()
-                })
-            }, { error ->
-                Log.d("MainActivity", "Error Throwable: ${error.message}")
-                emptyList<Product>()
-            })
-            resultedListOfProducts
+            // .flatMap для нескольких Observable
+            Observable.zip(
+                fetchProducts(),
+                fetchCategories()
+            ) { listOfProducts, listOfCategories ->
+                listOfProducts.filter { product ->
+                    listOfCategories.filter { it.id == categoryId }
+                        .flatMap { it.subcategories }
+                        .map { it.id }
+                        .contains(product.subcategoryId)
+                }
+            }
+            .blockingFirst(emptyList())
         } catch (e: Exception) {
             Log.d("MainActivity", "Error Throwable: ${e.message}")
-            emptyList<Product>()
+            emptyList()
         }
     }
 
