@@ -36,11 +36,6 @@ class MainActivity : AppCompatActivity() {
             if (!emitter.isDisposed) {
                 emitter.onComplete()
             }
-            /**
-             * TODO:
-             * fetchCategories вернуть Observable<Category> не как list<list> а через emitter по 1 получать
-             *     аналогично fetchProducts
-             */
         }
     }
 
